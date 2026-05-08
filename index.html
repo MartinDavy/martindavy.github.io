@@ -312,15 +312,25 @@
     <h2 class="reveal">RSVP</h2>
     <p class="bt reveal" style="margin:0 auto .5rem;text-align:center">Merci de confirmer avant le <strong>1er juin 2026</strong>.</p>
 
-    <div class="rsvp-form reveal" id="rsvp-form">
+    <!-- iframe invisible qui reçoit la réponse de Google Forms -->
+    <iframe name="rsvp-iframe" style="display:none"></iframe>
+
+    <form
+      class="rsvp-form reveal"
+      id="rsvp-form"
+      action="https://docs.google.com/forms/d/e/1FAIpQLScI90Tf95hJvMTUqKvKweLG_kkhZGHw_l6CfKGssO2prWyG1A/formResponse"
+      method="POST"
+      target="rsvp-iframe"
+      onsubmit="handleRSVP(event)"
+    >
       <div class="field-row">
-        <div><label for="nom">Nom</label><input type="text" id="nom" placeholder="Dupont"></div>
-        <div><label for="prenom">Prénom</label><input type="text" id="prenom" placeholder="Marie"></div>
+        <div><label for="nom">Nom</label><input type="text" name="entry.1869105317" id="nom" placeholder="Dupont" required></div>
+        <div><label for="prenom">Prénom</label><input type="text" name="entry.916912191" id="prenom" placeholder="Marie" required></div>
       </div>
-      <div><label for="mail">Adresse e-mail</label><input type="email" id="mail" placeholder="marie.dupont@email.com"></div>
+      <div><label for="mail">Adresse e-mail</label><input type="email" name="entry.290749565" id="mail" placeholder="marie.dupont@email.com"></div>
       <div>
         <label for="alimentation">Régime alimentaire</label>
-        <select id="alimentation">
+        <select name="entry.723399231" id="alimentation">
           <option value="Aucune restriction">— Aucune restriction particulière —</option>
           <option value="Végétarien">Végétarien</option>
           <option value="Vegan">Vegan</option>
@@ -331,11 +341,10 @@
       </div>
       <div>
         <label for="message">Message pour les mariés 💌</label>
-        <textarea id="message" placeholder="Un mot doux, une chanson à demander, ou vos souhaits…"></textarea>
+        <textarea name="entry.1082687308" id="message" placeholder="Un mot doux, une chanson à demander, ou vos souhaits…"></textarea>
       </div>
-      <div class="rsvp-err" id="rsvp-err">Merci de remplir au moins votre nom et votre prénom.</div>
-      <button class="btn" id="rsvp-btn" onclick="submitRSVP()">Confirmer ma présence</button>
-    </div>
+      <button type="submit" class="btn">Confirmer ma présence</button>
+    </form>
 
     <div class="rsvp-success" id="rsvp-ok">
       <div class="big-icon">🍂</div>
@@ -437,45 +446,14 @@ function updateCD() {
 }
 updateCD(); setInterval(updateCD, 1000);
 
-// ── RSVP → GOOGLE FORMS ──
-const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScI90Tf95hJvMTUqKvKweLG_kkhZGHw_l6CfKGssO2prWyG1A/formResponse';
-
-async function submitRSVP() {
-  const nom = document.getElementById('nom').value.trim();
-  const prenom = document.getElementById('prenom').value.trim();
-  const mail = document.getElementById('mail').value.trim();
-  const alimentation = document.getElementById('alimentation').value;
-  const message = document.getElementById('message').value.trim();
-  const errEl = document.getElementById('rsvp-err');
-
-  if (!nom || !prenom) { errEl.style.display = 'block'; return; }
-  errEl.style.display = 'none';
-
-  const btn = document.getElementById('rsvp-btn');
-  btn.disabled = true; btn.textContent = 'Envoi en cours…';
-
-  const body = new URLSearchParams({
-    'entry.1869105317': nom,
-    'entry.916912191': prenom,
-    'entry.290749565': mail,
-    'entry.723399231': alimentation,
-    'entry.1082687308': message
-  });
-
-  try {
-    // Google Forms requiert no-cors (pas de réponse lisible, mais les données sont bien envoyées)
-    await fetch(FORM_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString()
-    });
+// ── RSVP → GOOGLE FORMS (méthode iframe) ──
+function handleRSVP(e) {
+  // Le form se soumet normalement dans l'iframe caché
+  // On attend un court délai puis on affiche le message de succès
+  setTimeout(function() {
     document.getElementById('rsvp-form').style.display = 'none';
     document.getElementById('rsvp-ok').style.display = 'block';
-  } catch {
-    btn.disabled = false; btn.textContent = 'Confirmer ma présence';
-    alert('Une erreur est survenue. Veuillez réessayer.');
-  }
+  }, 800);
 }
 
 // ── QUIZ ──
